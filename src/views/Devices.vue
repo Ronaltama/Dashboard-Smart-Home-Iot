@@ -43,18 +43,7 @@
             <p>RSSI: {{ device.rssi }} dBm</p>
             <p>Uptime: {{ device.uptime }}</p>
             <p>Firmware: {{ device.firmware }}</p>
-          </div>
-          <div class="mt-4 flex space-x-2">
-            <button
-              class="flex-1 px-3 py-2 bg-blue-700 text-white text-sm rounded hover:bg-blue-800"
-            >
-              Reboot
-            </button>
-            <button
-              class="flex-1 px-3 py-2 bg-gray-300 text-gray-700 text-sm rounded hover:bg-gray-400"
-            >
-              Test
-            </button>
+            <p>Type: {{ device.type }}</p>
           </div>
         </div>
       </div>
@@ -75,22 +64,34 @@ const devices = ref([
     rssi: -45,
     uptime: "5d 12h",
     firmware: "v1.2.3",
+    type: "Camera Module",
   },
   {
     id: 2,
-    name: "Gas Sensor",
+    name: "Gas Sensor MQ-2",
     online: true,
     rssi: -52,
     uptime: "5d 12h",
     firmware: "v1.0.1",
+    type: "Gas Detection",
   },
   {
     id: 3,
-    name: "PIR Sensor",
+    name: "PIR Motion HC-SR501",
     online: true,
     rssi: -48,
     uptime: "5d 12h",
     firmware: "v1.1.0",
+    type: "Motion Detection",
+  },
+  {
+    id: 4,
+    name: "ESP32 Main Board",
+    online: true,
+    rssi: -42,
+    uptime: "5d 12h",
+    firmware: "v2.0.1",
+    type: "Main Controller",
   },
 ]);
 
