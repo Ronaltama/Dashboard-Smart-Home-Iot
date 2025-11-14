@@ -1,11 +1,25 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-4 sm:space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <h1 class="text-3xl font-bold text-white">Alarm History</h1>
+    <div
+      class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+    >
+      <h1
+        :class="[
+          'text-2xl sm:text-3xl font-bold',
+          isDarkMode ? 'text-white' : 'text-gray-900',
+        ]"
+      >
+        Alarm History
+      </h1>
       <button
         @click="refreshAlarms"
-        class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors flex items-center"
+        :class="[
+          'px-4 py-2 rounded-lg transition-colors flex items-center justify-center',
+          isDarkMode
+            ? 'bg-gray-800 hover:bg-gray-700 text-white'
+            : 'bg-gray-200 hover:bg-gray-300 text-gray-900',
+        ]"
       >
         <RefreshCw class="h-4 w-4 mr-2" :class="{ 'animate-spin': loading }" />
         Refresh
@@ -13,15 +27,30 @@
     </div>
 
     <!-- Filters -->
-    <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div
+      :class="[
+        'rounded-xl p-4 border',
+        isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200',
+      ]"
+    >
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-400 mb-2"
-            >Type</label
+          <label
+            :class="[
+              'block text-sm font-medium mb-2',
+              isDarkMode ? 'text-gray-400' : 'text-gray-700',
+            ]"
           >
+            Type
+          </label>
           <select
             v-model="filterType"
-            class="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            :class="[
+              'w-full rounded-lg px-4 py-2 border focus:outline-none focus:ring-2 focus:ring-blue-500',
+              isDarkMode
+                ? 'bg-gray-800 border-gray-700 text-white'
+                : 'bg-white border-gray-300 text-gray-900',
+            ]"
           >
             <option value="">All Types</option>
             <option value="GAS">Gas Alert</option>
@@ -31,12 +60,22 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-400 mb-2"
-            >Severity</label
+          <label
+            :class="[
+              'block text-sm font-medium mb-2',
+              isDarkMode ? 'text-gray-400' : 'text-gray-700',
+            ]"
           >
+            Severity
+          </label>
           <select
             v-model="filterSeverity"
-            class="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            :class="[
+              'w-full rounded-lg px-4 py-2 border focus:outline-none focus:ring-2 focus:ring-blue-500',
+              isDarkMode
+                ? 'bg-gray-800 border-gray-700 text-white'
+                : 'bg-white border-gray-300 text-gray-900',
+            ]"
           >
             <option value="">All Severity</option>
             <option value="HIGH">High</option>
@@ -46,79 +85,226 @@
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-400 mb-2"
-            >Date From</label
+          <label
+            :class="[
+              'block text-sm font-medium mb-2',
+              isDarkMode ? 'text-gray-400' : 'text-gray-700',
+            ]"
           >
+            Date From
+          </label>
           <input
             v-model="filterDateFrom"
             type="date"
-            class="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            :class="[
+              'w-full rounded-lg px-4 py-2 border focus:outline-none focus:ring-2 focus:ring-blue-500',
+              isDarkMode
+                ? 'bg-gray-800 border-gray-700 text-white'
+                : 'bg-white border-gray-300 text-gray-900',
+            ]"
           />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-400 mb-2"
-            >Date To</label
+          <label
+            :class="[
+              'block text-sm font-medium mb-2',
+              isDarkMode ? 'text-gray-400' : 'text-gray-700',
+            ]"
           >
+            Date To
+          </label>
           <input
             v-model="filterDateTo"
             type="date"
-            class="w-full bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            :class="[
+              'w-full rounded-lg px-4 py-2 border focus:outline-none focus:ring-2 focus:ring-blue-500',
+              isDarkMode
+                ? 'bg-gray-800 border-gray-700 text-white'
+                : 'bg-white border-gray-300 text-gray-900',
+            ]"
           />
         </div>
       </div>
     </div>
 
-    <!-- Alarms Table -->
-    <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+    <!-- Empty State -->
+    <div
+      v-if="filteredAlarms.length === 0"
+      :class="[
+        'rounded-xl p-12 border text-center',
+        isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200',
+      ]"
+    >
+      <AlertTriangle
+        :class="[
+          'h-16 w-16 mx-auto mb-4',
+          isDarkMode ? 'text-gray-600' : 'text-gray-400',
+        ]"
+      />
+      <p
+        :class="[
+          'text-lg font-medium mb-2',
+          isDarkMode ? 'text-gray-400' : 'text-gray-600',
+        ]"
+      >
+        No alarms found
+      </p>
+      <p :class="['text-sm', isDarkMode ? 'text-gray-500' : 'text-gray-500']">
+        Alarm history will appear here when triggered
+      </p>
+    </div>
+
+    <!-- Alarms List (Mobile/Tablet) -->
+    <div v-else class="block lg:hidden space-y-3">
+      <div
+        v-for="alarm in filteredAlarms"
+        :key="alarm.id"
+        @click="viewAlarmDetail(alarm)"
+        :class="[
+          'rounded-xl p-4 border cursor-pointer transition-all',
+          isDarkMode
+            ? 'bg-gray-900 border-gray-800 hover:border-blue-500'
+            : 'bg-white border-gray-200 hover:border-blue-500',
+        ]"
+      >
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center space-x-2">
+            <component
+              :is="getTypeIcon(alarm.type)"
+              :class="[
+                'h-5 w-5',
+                alarm.type === 'GAS'
+                  ? 'text-red-400'
+                  : alarm.type === 'PIR'
+                  ? 'text-yellow-400'
+                  : 'text-blue-400',
+              ]"
+            />
+            <span
+              :class="[
+                'text-sm font-medium',
+                isDarkMode ? 'text-white' : 'text-gray-900',
+              ]"
+            >
+              {{ alarm.type }}
+            </span>
+          </div>
+          <span
+            :class="[
+              'px-2 py-1 rounded-full text-xs font-semibold',
+              alarm.severity === 'HIGH'
+                ? 'bg-red-500/20 text-red-400'
+                : alarm.severity === 'MEDIUM'
+                ? 'bg-yellow-500/20 text-yellow-400'
+                : 'bg-green-500/20 text-green-400',
+            ]"
+          >
+            {{ alarm.severity }}
+          </span>
+        </div>
+        <p
+          :class="[
+            'text-sm mb-2',
+            isDarkMode ? 'text-gray-300' : 'text-gray-700',
+          ]"
+        >
+          {{ alarm.message }}
+        </p>
+        <div class="flex items-center justify-between text-xs">
+          <span :class="isDarkMode ? 'text-gray-400' : 'text-gray-600'">
+            {{ formatDate(alarm.timestamp) }}
+          </span>
+          <span :class="isDarkMode ? 'text-gray-500' : 'text-gray-500'">
+            {{ formatTime(alarm.timestamp) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alarms Table (Desktop) -->
+    <div
+      v-if="filteredAlarms.length > 0"
+      :class="[
+        'hidden lg:block rounded-xl overflow-hidden border',
+        isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200',
+      ]"
+    >
       <div class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-gray-800 border-b border-gray-700">
+          <thead
+            :class="[
+              'border-b',
+              isDarkMode
+                ? 'bg-gray-800 border-gray-700'
+                : 'bg-gray-100 border-gray-200',
+            ]"
+          >
             <tr>
               <th
-                class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                :class="[
+                  'px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider',
+                  isDarkMode ? 'text-gray-400' : 'text-gray-700',
+                ]"
               >
                 Timestamp
               </th>
               <th
-                class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                :class="[
+                  'px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider',
+                  isDarkMode ? 'text-gray-400' : 'text-gray-700',
+                ]"
               >
                 Type
               </th>
               <th
-                class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                :class="[
+                  'px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider',
+                  isDarkMode ? 'text-gray-400' : 'text-gray-700',
+                ]"
               >
                 Message
               </th>
               <th
-                class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
+                :class="[
+                  'px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider',
+                  isDarkMode ? 'text-gray-400' : 'text-gray-700',
+                ]"
               >
                 Severity
               </th>
-              <th
-                class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-              >
-                Snapshot
-              </th>
-              <th
-                class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider"
-              >
-                Actions
-              </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-800">
+          <tbody
+            :class="[
+              'divide-y',
+              isDarkMode ? 'divide-gray-800' : 'divide-gray-200',
+            ]"
+          >
             <tr
               v-for="alarm in filteredAlarms"
               :key="alarm.id"
-              class="hover:bg-gray-800/50 transition-colors cursor-pointer"
               @click="viewAlarmDetail(alarm)"
+              :class="[
+                'cursor-pointer transition-colors',
+                isDarkMode ? 'hover:bg-gray-800/50' : 'hover:bg-gray-50',
+              ]"
             >
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-white">
+                <div
+                  :class="[
+                    'text-sm',
+                    isDarkMode ? 'text-white' : 'text-gray-900',
+                  ]"
+                >
                   {{ formatDate(alarm.timestamp) }}
                 </div>
-                <div class="text-xs text-gray-400">
+                <div
+                  :class="[
+                    'text-xs',
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600',
+                  ]"
+                >
                   {{ formatTime(alarm.timestamp) }}
                 </div>
               </td>
@@ -135,11 +321,25 @@
                         : 'text-blue-400',
                     ]"
                   />
-                  <span class="text-sm text-white">{{ alarm.type }}</span>
+                  <span
+                    :class="[
+                      'text-sm',
+                      isDarkMode ? 'text-white' : 'text-gray-900',
+                    ]"
+                  >
+                    {{ alarm.type }}
+                  </span>
                 </div>
               </td>
               <td class="px-6 py-4">
-                <div class="text-sm text-white">{{ alarm.message }}</div>
+                <div
+                  :class="[
+                    'text-sm',
+                    isDarkMode ? 'text-white' : 'text-gray-900',
+                  ]"
+                >
+                  {{ alarm.message }}
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
@@ -149,203 +349,31 @@
                       ? 'bg-red-500/20 text-red-400'
                       : alarm.severity === 'MEDIUM'
                       ? 'bg-yellow-500/20 text-yellow-400'
-                      : 'bg-blue-500/20 text-blue-400',
+                      : 'bg-green-500/20 text-green-400',
                   ]"
                 >
                   {{ alarm.severity }}
                 </span>
               </td>
-              <td class="px-6 py-4">
-                <div
-                  v-if="alarm.thumbnailUrl"
-                  class="w-16 h-12 rounded overflow-hidden"
-                >
-                  <img
-                    :src="alarm.thumbnailUrl"
-                    alt="Snapshot"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-                <span v-else class="text-xs text-gray-500">No image</span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <button
-                  @click.stop="viewAlarmDetail(alarm)"
-                  class="text-blue-500 hover:text-blue-400 text-sm font-medium"
-                >
-                  View Details
-                </button>
-              </td>
-            </tr>
-
-            <tr v-if="filteredAlarms.length === 0">
-              <td colspan="6" class="px-6 py-12 text-center">
-                <AlertTriangle class="h-12 w-12 mx-auto mb-3 text-gray-600" />
-                <p class="text-gray-400">No alarms found</p>
-              </td>
             </tr>
           </tbody>
         </table>
-      </div>
-
-      <!-- Pagination -->
-      <div
-        class="bg-gray-800 px-6 py-4 flex items-center justify-between border-t border-gray-700"
-      >
-        <div class="text-sm text-gray-400">
-          Showing
-          {{ Math.min((currentPage - 1) * itemsPerPage + 1, totalItems) }} to
-          {{ Math.min(currentPage * itemsPerPage, totalItems) }} of
-          {{ totalItems }} results
-        </div>
-        <div class="flex space-x-2">
-          <button
-            @click="currentPage--"
-            :disabled="currentPage === 1"
-            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-          >
-            Previous
-          </button>
-          <button
-            @click="currentPage++"
-            :disabled="currentPage >= totalPages"
-            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-          >
-            Next
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Detail Modal -->
-    <div
-      v-if="selectedAlarm"
-      @click="closeModal"
-      class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-    >
-      <div
-        @click.stop
-        class="relative max-w-4xl w-full bg-gray-900 border border-gray-800 rounded-xl overflow-hidden"
-      >
-        <!-- Modal Header -->
-        <div
-          class="flex items-center justify-between p-6 border-b border-gray-800"
-        >
-          <h3 class="text-xl font-semibold text-white">Alarm Details</h3>
-          <button
-            @click="closeModal"
-            class="p-2 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
-          >
-            <X class="h-6 w-6" />
-          </button>
-        </div>
-
-        <!-- Modal Content -->
-        <div class="p-6 space-y-6">
-          <!-- Alarm Info -->
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-400 mb-1"
-                >Timestamp</label
-              >
-              <p class="text-white">
-                {{ formatDate(selectedAlarm.timestamp) }}
-                {{ formatTime(selectedAlarm.timestamp) }}
-              </p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-400 mb-1"
-                >Type</label
-              >
-              <div class="flex items-center">
-                <component
-                  :is="getTypeIcon(selectedAlarm.type)"
-                  :class="[
-                    'h-5 w-5 mr-2',
-                    selectedAlarm.type === 'GAS'
-                      ? 'text-red-400'
-                      : selectedAlarm.type === 'PIR'
-                      ? 'text-yellow-400'
-                      : 'text-blue-400',
-                  ]"
-                />
-                <span class="text-white">{{ selectedAlarm.type }}</span>
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-400 mb-1"
-                >Severity</label
-              >
-              <span
-                :class="[
-                  'inline-block px-3 py-1 rounded-full text-xs font-semibold',
-                  selectedAlarm.severity === 'HIGH'
-                    ? 'bg-red-500/20 text-red-400'
-                    : selectedAlarm.severity === 'MEDIUM'
-                    ? 'bg-yellow-500/20 text-yellow-400'
-                    : 'bg-blue-500/20 text-blue-400',
-                ]"
-              >
-                {{ selectedAlarm.severity }}
-              </span>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-400 mb-1"
-                >ID</label
-              >
-              <p class="text-white text-sm font-mono">{{ selectedAlarm.id }}</p>
-            </div>
-          </div>
-
-          <!-- Message -->
-          <div>
-            <label class="block text-sm font-medium text-gray-400 mb-2"
-              >Message</label
-            >
-            <p class="text-white bg-gray-800 p-4 rounded-lg">
-              {{ selectedAlarm.message }}
-            </p>
-          </div>
-
-          <!-- Metadata -->
-          <div v-if="selectedAlarm.metadata">
-            <label class="block text-sm font-medium text-gray-400 mb-2"
-              >Metadata</label
-            >
-            <pre
-              class="text-white bg-gray-800 p-4 rounded-lg text-sm overflow-auto"
-              >{{ JSON.stringify(selectedAlarm.metadata, null, 2) }}</pre
-            >
-          </div>
-
-          <!-- Snapshot Image -->
-          <div v-if="selectedAlarm.imageUrl">
-            <label class="block text-sm font-medium text-gray-400 mb-2"
-              >Snapshot</label
-            >
-            <div class="bg-gray-800 rounded-lg overflow-hidden">
-              <img
-                :src="selectedAlarm.imageUrl"
-                alt="Alarm Snapshot"
-                class="w-full h-auto"
-              />
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, inject, computed, onMounted } from "vue";
 import {
   AlertTriangle,
   Activity,
   CreditCard,
   RefreshCw,
-  X,
 } from "lucide-vue-next";
+
+// Inject theme
+const isDarkMode = inject("isDarkMode", ref(true));
 
 // State
 const loading = ref(false);
@@ -357,10 +385,6 @@ const filterType = ref("");
 const filterSeverity = ref("");
 const filterDateFrom = ref("");
 const filterDateTo = ref("");
-
-// Pagination
-const currentPage = ref(1);
-const itemsPerPage = ref(10);
 
 // Computed
 const filteredAlarms = computed(() => {
@@ -386,16 +410,8 @@ const filteredAlarms = computed(() => {
     );
   }
 
-  return filtered.slice(
-    (currentPage.value - 1) * itemsPerPage.value,
-    currentPage.value * itemsPerPage.value
-  );
+  return filtered;
 });
-
-const totalItems = computed(() => alarms.value.length);
-const totalPages = computed(() =>
-  Math.ceil(totalItems.value / itemsPerPage.value)
-);
 
 // Methods
 const getTypeIcon = (type) => {
@@ -430,19 +446,10 @@ const viewAlarmDetail = (alarm) => {
   selectedAlarm.value = alarm;
 };
 
-const closeModal = () => {
-  selectedAlarm.value = null;
-};
-
 const fetchAlarms = async () => {
   loading.value = true;
   try {
     // TODO: Fetch from Firestore
-    // const q = query(collection(db, 'alarms'), orderBy('timestamp', 'desc'));
-    // const querySnapshot = await getDocs(q);
-    // alarms.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-    // Set empty array untuk sekarang
     alarms.value = [];
     console.log("TODO: Fetch alarms from Firestore");
   } catch (error) {
