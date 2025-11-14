@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Login from "../views/Login.vue";
-import Overview from "../views/Overview.vue";
+import Dashboard from "../views/Dashboard.vue";
 import Alarms from "../views/Alarms.vue";
-import Camera from "../views/Camera.vue";
-import Access from "../views/Access.vue";
-import Devices from "../views/Devices.vue";
+import Snapshots from "../views/Snapshots.vue";
 import Settings from "../views/Settings.vue";
-import Logs from "../views/Logs.vue";
+import Layout from "../components/Layout.vue";
+import { auth } from "../services/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 const routes = [
   {
@@ -19,46 +19,31 @@ const routes = [
     component: Login,
   },
   {
-    path: "/overview",
-    name: "Overview",
-    component: Overview,
+    path: "/",
+    component: Layout,
     meta: { requiresAuth: true },
-  },
-  {
-    path: "/alarms",
-    name: "Alarms",
-    component: Alarms,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/camera",
-    name: "Camera",
-    component: Camera,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/access",
-    name: "Access",
-    component: Access,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/devices",
-    name: "Devices",
-    component: Devices,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/settings",
-    name: "Settings",
-    component: Settings,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: "/logs",
-    name: "Logs",
-    component: Logs,
-    meta: { requiresAuth: true },
+    children: [
+      {
+        path: "dashboard",
+        name: "Dashboard",
+        component: Dashboard,
+      },
+      {
+        path: "alarms",
+        name: "Alarms",
+        component: Alarms,
+      },
+      {
+        path: "snapshots",
+        name: "Snapshots",
+        component: Snapshots,
+      },
+      {
+        path: "settings",
+        name: "Settings",
+        component: Settings,
+      },
+    ],
   },
 ];
 
@@ -67,17 +52,43 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem("authToken");
+// Navigation guard dengan Firebase Auth check
+let isAuthReady = false;
 
-  if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (!token) {
-      next({ name: "Login" });
+onAuthStateChanged(auth, (user) => {
+  isAuthReady = true;
+  if (user) {
+    console.log("✅ User authenticated:", user.email);
+  } else {
+    console.log("⚠️ No user authenticated");
+  }
+});
+
+router.beforeEach((to, from, next) => {
+  // Tunggu Firebase Auth ready
+  if (!isAuthReady) {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      isAuthReady = true;
+
+      if (to.meta.requiresAuth && !user) {
+        next("/login");
+      } else if (to.path === "/login" && user) {
+        next("/dashboard");
+      } else {
+        next();
+      }
+    });
+  } else {
+    const user = auth.currentUser;
+
+    if (to.meta.requiresAuth && !user) {
+      next("/login");
+    } else if (to.path === "/login" && user) {
+      next("/dashboard");
     } else {
       next();
     }
-  } else {
-    next();
   }
 });
 

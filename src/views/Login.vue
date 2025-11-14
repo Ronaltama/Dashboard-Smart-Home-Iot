@@ -147,6 +147,8 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { Shield, Mail, Lock, Eye, EyeOff, Sun, Moon } from "lucide-vue-next";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../services/firebase";
 
 const router = useRouter();
 const form = ref({ email: "", password: "" });
@@ -159,19 +161,52 @@ const handleLogin = async () => {
   isLoading.value = true;
   errorMessage.value = "";
 
-  setTimeout(() => {
-    if (
-      form.value.email === "admin@security.com" &&
-      form.value.password === "admin123"
-    ) {
-      localStorage.setItem("authToken", "dummy-token-" + Date.now());
-      localStorage.setItem("userEmail", form.value.email);
-      router.push("/overview");
-    } else {
-      errorMessage.value = "Email atau password salah!";
+  try {
+    // Login dengan Firebase Authentication
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      form.value.email,
+      form.value.password
+    );
+
+    const user = userCredential.user;
+
+    // Simpan token dan user info ke localStorage
+    const token = await user.getIdToken();
+    localStorage.setItem("authToken", token);
+    localStorage.setItem("userEmail", user.email);
+    localStorage.setItem("userId", user.uid);
+
+    console.log("✅ Login berhasil:", user.email);
+
+    // Redirect ke dashboard
+    router.push("/dashboard");
+  } catch (error) {
+    console.error("❌ Login error:", error);
+
+    // Handle berbagai error dari Firebase
+    switch (error.code) {
+      case "auth/user-not-found":
+        errorMessage.value = "Email tidak terdaftar!";
+        break;
+      case "auth/wrong-password":
+        errorMessage.value = "Password salah!";
+        break;
+      case "auth/invalid-email":
+        errorMessage.value = "Format email tidak valid!";
+        break;
+      case "auth/too-many-requests":
+        errorMessage.value = "Terlalu banyak percobaan. Coba lagi nanti.";
+        break;
+      case "auth/invalid-credential":
+        errorMessage.value = "Email atau password salah!";
+        break;
+      default:
+        errorMessage.value = "Login gagal. Silakan coba lagi.";
     }
+  } finally {
     isLoading.value = false;
-  }, 1000);
+  }
 };
 
 const toggleTheme = () => {
