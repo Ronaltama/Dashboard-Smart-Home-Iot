@@ -1,18 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Login from "../views/Login.vue";
 import Dashboard from "../views/Dashboard.vue";
-import Alarms from "../views/Alarms.vue";
-import Snapshots from "../views/Snapshots.vue";
-import Settings from "../views/Settings.vue";
 import Layout from "../components/Layout.vue";
 import { auth } from "../services/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
 const routes = [
-  {
-    path: "/",
-    redirect: "/login",
-  },
   {
     path: "/login",
     name: "Login",
@@ -24,24 +17,18 @@ const routes = [
     meta: { requiresAuth: true },
     children: [
       {
+        path: "",
+        redirect: "/dashboard",
+      },
+      {
         path: "dashboard",
         name: "Dashboard",
         component: Dashboard,
       },
       {
-        path: "alarms",
-        name: "Alarms",
-        component: Alarms,
-      },
-      {
-        path: "snapshots",
-        name: "Snapshots",
-        component: Snapshots,
-      },
-      {
-        path: "settings",
-        name: "Settings",
-        component: Settings,
+        path: "history",
+        name: "History",
+        component: () => import("../views/History.vue"),
       },
     ],
   },
